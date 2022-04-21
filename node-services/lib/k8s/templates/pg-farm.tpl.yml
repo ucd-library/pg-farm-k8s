@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: "pg-farm"
+spec:
+  selector:
+    matchLabels:
+      app: "pg-farm"
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: "pg-farm"
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+      - name: backend
+        image: "{{image}}"
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+        volumeMounts:
+        - name: kubeconf
+          mountPath: "/root/.kube"
+          readOnly: true
+        - name: minikube-ca
+          mountPath: "/root/.minikube"
+          readOnly: true
+        - name: minikube-profile-keys
+          mountPath: "/root/.minikube/profiles/minikube"
+          readOnly: true
+        resources:
+          limits:
+            memory: "{{limits.memory}}"
+            cpu: "{{limits.cpu}}"
+          requests:
+            memory: "{{requests.memory}}"
+            cpu: "{{requests.cpu}}"
+        command: ["bash", "-c", "tail -f /dev/null"]
+      volumes:
+      - name: kubeconf
+        secret:
+          secretName: kubeconf
+          optional: false
+      - name: minikube-ca
+        secret:
+          secretName: minikube-ca
+          optional: false
+      - name: minikube-profile-keys
+        secret:
+          secretName: minikube-profile-keys
+          optional: false

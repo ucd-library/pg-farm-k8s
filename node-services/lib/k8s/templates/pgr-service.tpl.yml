@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: "{{appName}}-pgr-service"
+spec:
+  type: ClusterIP
+  selector:
+    app: "{{appName}}-pg"
+  ports:
+  - port: 8080

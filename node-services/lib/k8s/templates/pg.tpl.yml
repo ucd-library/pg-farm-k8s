@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: "{{appName}}-pg"
+spec:
+  selector:
+    matchLabels:
+      app: "{{appName}}-pg"
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: "{{appName}}-pg"
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+      - name: postgres
+        image: "{{image}}"
+        imagePullPolicy: Always
+        env:
+        - name: PGDATA
+          value: "/var/lib/postgresql/data/pgdata"
+        - name: POSTGRES_PASSWORD
+          value: password
+        - name: POSTGRES_HOST_AUTH_METHOD
+          value: trust
+        ports:
+        - containerPort: 5432
+        volumeMounts:
+        - name: "{{appName}}-pg-ps"
+          mountPath: /var/lib/postgresql/data
+        - name: keys
+          mountPath: "/etc/server-keys"
+          readOnly: true
+        resources:
+          limits:
+            memory: "{{limits.memory}}"
+            cpu: "{{limits.cpu}}"
+          requests:
+            memory: "{{requests.memory}}"
+            cpu: "{{requests.cpu}}"
+      - name: pgr
+        image: postgrest/postgrest:v6.0.2
+        environment:
+        - PGRST_DB_URI=postgres://{{pgr.password}}@localhost:5432/{{pgr.database}}
+        - PGRST_DB_SCHEMA={{pgr.schema}}
+        - PGRST_DB_ANON_ROLE={{pgr.anonRole}}
+        ports:
+        - containerPort: 3000
+      volumes:
+      - name: keys
+        secret:
+          secretName: server-keys
+          optional: false
+  volumeClaimTemplates:
+  - metadata:
+      name: "{{appName}}-pg-ps"
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: "{{storageSize}}"
