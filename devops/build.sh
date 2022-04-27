@@ -19,6 +19,8 @@ REPO_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 
 docker build \
   -t $NODE_SERVICE_IMAGE_NAME:$APP_VERSION \
+  -t $NODE_SERVICE_IMAGE_NAME:local \
+  -t pg-farm-node-service:local \
   --build-arg BUILDKIT_INLINE_CACHE=1 \
   --build-arg REPO_HASH=$REPO_HASH \
   --build-arg APP_VERSION=$APP_VERSION \

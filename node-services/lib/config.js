@@ -20,10 +20,6 @@ const config = {
 
   },
 
-
-
-
-
   k8s : {
 
     default : {

@@ -1,5 +1,7 @@
 import { exec } from 'child_process';
 import { render } from './template.js';
+import YAML from 'yaml';
+
 
 class K8sUtils {
 
@@ -15,18 +17,26 @@ class K8sUtils {
     return this._exec(`kubectl create secret generic ${name} ${files.map(file => '--from-file='+file).join(' ')}`);
   }
 
+  async execCmd(service) {
+    let {stdout, stderr} = await this._exec(`kubectl get pods -l app=${service} -o jsonpath='{.items[0].metadata.name}'`);
+    return `kubectl exec --stdin --tty ${stdout} -- bash`
+  }
+
   deleteSecret(name) {
     return this._exec(`kubectl delete secret ${name}`);
   }
 
-  delete(type, service) {
+  delete(service, type) {
+    if( !type ) {
+      type = (YAML.parse(render(service, {}))).kind;
+    }
+
     return this._exec(`kubectl delete ${type} ${service}`);
   }
 
-  apply(service, config={}) {
-
-
+  apply(service, config={}, dryRun=false) {
     let yaml = render(service, config);
+    if( dryRun === true ) return yaml;
 
     let cmd = `cat <<EOF | kubectl apply -f -
 ${yaml}

@@ -40,7 +40,7 @@ CONTAINER_REG_ORG=gcr.io/ucdlib-pubreg
 CONTAINER_CACHE_TAG='latest'
 
 if [[ ! -z $LOCAL_BUILD ]]; then
-  CONTAINER_REG_ORG=localhost/dev
+  CONTAINER_REG_ORG=local/dev
 fi
 
 # Container Images

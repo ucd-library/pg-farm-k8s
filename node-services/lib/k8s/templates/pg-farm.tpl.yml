@@ -16,7 +16,11 @@ spec:
       containers:
       - name: backend
         image: "{{image}}"
+        {{#if dev}}
+        imagePullPolicy: Never
+        {{else}}
         imagePullPolicy: Always
+        {{/if}}
         ports:
         - containerPort: 8080
         volumeMounts:
@@ -29,6 +33,11 @@ spec:
         - name: minikube-profile-keys
           mountPath: "/root/.minikube/profiles/minikube"
           readOnly: true
+        {{#each dev.dirs}}
+        - name: local-{{name}}
+          mountPath: {{containerPath}}
+          readOnly: true
+        {{/each}}
         resources:
           limits:
             memory: "{{limits.memory}}"
@@ -36,7 +45,11 @@ spec:
           requests:
             memory: "{{requests.memory}}"
             cpu: "{{requests.cpu}}"
+        {{#if dev}}
         command: ["bash", "-c", "tail -f /dev/null"]
+        {{else}}
+        command: {{command}}
+        {{/if}}
       volumes:
       - name: kubeconf
         secret:
@@ -50,3 +63,8 @@ spec:
         secret:
           secretName: minikube-profile-keys
           optional: false
+      {{#each dev.dirs}}
+      - name: local-{{name}}
+        hostPath:
+          path: /hosthome{{hostPath}}
+      {{/each}}
